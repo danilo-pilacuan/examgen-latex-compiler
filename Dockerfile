@@ -15,7 +15,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir fastapi uvicorn pydantic
 
-# Copiar el código del microservicio.
+# Copy the microservice code.
 COPY src/latex_compiler/app.py /app/latex_compiler_app.py
 
 EXPOSE 8080

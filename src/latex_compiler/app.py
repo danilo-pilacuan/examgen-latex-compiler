@@ -24,10 +24,10 @@ def compile_latex(req: CompileRequest):
         f.write(req.latex_code)
 
     try:
-        # Ejecutar pdflatex DOS veces: la primera genera el .aux con los
-        # totales de puntos/referencias, la segunda los resuelve. Sin la
-        # segunda pasada, pdflatex termina con "Rerun to get ... right"
-        # (returncode != 0) aunque el PDF ya esté generado.
+        # Run pdflatex TWICE: the first pass generates the .aux with the
+        # totals of points/references, the second resolves them. Without the
+        # second pass, pdflatex ends with "Rerun to get ... right"
+        # (returncode != 0) even though the PDF was already generated.
         for _ in range(2):
             result = subprocess.run(
                 ["pdflatex", "-interaction=nonstopmode", "-output-directory", work_dir, tex_path],
@@ -36,8 +36,8 @@ def compile_latex(req: CompileRequest):
                 timeout=30
             )
 
-        # Consideramos éxito si el PDF se generó, aunque returncode != 0
-        # (puede haber warnings no fatales de "rerun" o overfull hbox).
+        # Consider success if the PDF was generated, even with returncode != 0
+        # (there may be non-fatal "rerun" or overfull hbox warnings).
         if os.path.exists(pdf_path):
             output_dest = f"/app/output/{job_id}.pdf"
             # Ensure output dir exists (bind mount may not be present at first run)
@@ -50,7 +50,7 @@ def compile_latex(req: CompileRequest):
             if os.path.exists(log_path):
                 with open(log_path, "r", encoding="utf-8", errors="ignore") as lf:
                     log_content = lf.read()
-            return {"status": "error", "error_log": log_content[-2000:]} # Retorna los últimos 2000 chars del log
+            return {"status": "error", "error_log": log_content[-2000:]} # Return the last 2000 chars of the log
 
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=408, detail="Timeout durante la compilación de LaTeX")
+        raise HTTPException(status_code=408, detail="Timeout during LaTeX compilation")
